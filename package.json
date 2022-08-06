@@ -1,0 +1,29 @@
+{
+  "name": "avranas-fitness-journal",
+  "version": "1.0.0",
+  "description": "A daily journal for tracking fitness progress",
+  "main": "server.js",
+  "scripts": {
+    "test": "test",
+    "start": "nodemon start"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/avranas/avranas-fitness-journal.git"
+  },
+  "author": "Alex Vranas",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/avranas/avranas-fitness-journal/issues"
+  },
+  "homepage": "https://github.com/avranas/avranas-fitness-journal#readme",
+  "dependencies": {
+    "body-parser": "^1.20.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.0.1",
+    "express": "^4.18.1",
+    "express-session": "^1.17.3",
+    "nodemon": "^2.0.19",
+    "passport": "^0.6.0"
+  }
+}
