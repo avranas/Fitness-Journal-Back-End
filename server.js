@@ -24,7 +24,6 @@ app.use(bodyParser.json());
 
 //Routes
 app.get('/', (req, res, next) => {
-   console.log('Hello world');
    res.status(200).send('Hello world');
 });
 app.use('/register', require('./routes/register.js'));
@@ -35,13 +34,14 @@ app.use('/summary', require('./routes/summary.js'));
 
 app.use((err, req, res, next) => {
    console.log(err);
-   res.status(err.status || 500).send(err);
+   res.status(err.statusCode || 500).send(err.message);
 });
 
 app.listen(PORT, () => {
    console.log(
       `Running AVranas Fitness Journal - Listening on port ${PORT}`
    );
+    
    // var start = new Date("02/05/2013");
    // var end = new Date("03/10/2013");
    // var target = new Date("02/22/2013");
@@ -56,6 +56,7 @@ app.listen(PORT, () => {
    //    loop = new Date(newDate);
    // }
 
-      //TODO NEXT: "err is not defined"
 
 });
+
+module.exports = app;

@@ -4,6 +4,7 @@ const registerRouter = express.Router();
 const User = require('../db/models/Users.js')
 const {checkNotAuthenticated} = require('./authentication-check.js');
 const Profile = require('../db/models/Profiles.js');
+const createHttpError = require("http-errors");
 
 /*
 Example:
@@ -14,7 +15,7 @@ Example:
       "goal_weight": 168.6
    }
 */
-registerRouter.post('/', checkNotAuthenticated, async (req, res) => {
+registerRouter.post('/', checkNotAuthenticated, async (req, res, next) => {
    try {
       const username = req.body.username;
       const password = req.body.password;
@@ -25,7 +26,7 @@ registerRouter.post('/', checkNotAuthenticated, async (req, res) => {
          where: {username: username}
       });
       if(result){
-         throw "A user with that name already exists";
+         throw createHttpError(400, "A user with that name already exists");
       }
       const hashedPassword = await bcrypt.hash(password, 10);
       const newUserResults = await User.create({

@@ -2,13 +2,17 @@ const express = require('express');
 const JournalEntry = require('../db/models/JournalEntries');
 const {checkAuthenticated} = require('./authentication-check');
 const { Op } = require('sequelize');
-const {validDateCheck, userProfile} = require('./valid-entry-check');
+const {validDateCheck, entryExists} = require('./valid-entry-check');
 const { getJournalEntries } = require('./get-journal-entries');
+const createHttpError = require("http-errors");
 
 /*
 TODO: MAKE THESE ROUTES
 GET /weight_pace/:start_date/:target_date	//Returns your estimated weight at a future date at your current pace
 GET /journal_entry/max_chain  //Easy - returns the user’s max chain. This gets recalculated whenever entries are posted, modified, or removed
+
+I can skip weight pace if I want. Max chain should be easy
+Next: write your own tests and test everything
 */
 
 
@@ -38,10 +42,10 @@ journalEntryRouter.get('/:entry_date', async (req, res, next) => {
       const result = await JournalEntry.findAll({
          where: { entry_date: req.params.entry_date }
       });
-      if(result === []){
+      if(result[0]){
          res.status(200).send(result);
       } else {
-         throw "No entry for this date was found"
+         throw createHttpError(404, "No entry for this date was found");
       }
    }catch(err){
       next(err);
@@ -59,10 +63,7 @@ journalEntryRouter.get('/:start_date/:end_date', async (req, res, next) => {
          startDate = endDate;
          endDate = temp;
       }
-      console.log(startDate);
-      console.log(endDate);
       const result = await getJournalEntries(req, res, next, startDate, endDate);
-      console.log('wtf')
       res.status(200).send(result);
    }catch(err){
       next(err);
@@ -89,7 +90,7 @@ journalEntryRouter.post('/:entry_date', async (req, res, next) => {
          throw "Not a valid date";
       }
       if(await entryExists(req.user.id, entryDate)){
-         throw "An entry for this date already exists.";
+         throw createHttpError(400, "An entry for this date already exists");
       }
       await JournalEntry.create({
          entry_date: entryDate,
@@ -100,9 +101,8 @@ journalEntryRouter.post('/:entry_date', async (req, res, next) => {
          notes: req.body.notes,
          user_id: req.user.id
       });
-      res.status(200).send('New entry accepted');
+      res.status(201).send('New entry accepted');
    }catch(err){
-      console.log(err);
       next(err);
    }
 });
@@ -122,12 +122,12 @@ localhost:3000/journal-entries/2022-08-06
 journalEntryRouter.put('/:entry_date', async (req, res, next) => {
    try {
       const entryDate = new Date(req.params.entry_date);
-      if(!validDateCheck(next, req.user.id, entryDate)){
+      if(!validDateCheck(next, entryDate)){
          throw "Failed validDateCheck";
       }
       //Make sure an entry already exists
       if(! await entryExists(req.user.id, entryDate)){
-         throw "Error: An entry for this date does not exist.";
+         throw createHttpError(400, "An entry for this date does not exist");
       } else {
          await JournalEntry.update({
             weight: req.body.weight,
@@ -150,12 +150,12 @@ journalEntryRouter.put('/:entry_date', async (req, res, next) => {
 journalEntryRouter.delete('/:entry_date', async (req, res, next) => {
    try{
       const entryDate = new Date(req.params.entry_date);
-      if(!validDateCheck(next, req.user.id, entryDate)){
-         throw err;
+      if(!validDateCheck(next, entryDate)){
+         throw "Failed validDateCheck";
       }
       //Make sure an entry already exists
       if(! await entryExists(req.user.id, entryDate)){
-         throw "Error: An entry for this date does not exist.";
+         throw createHttpError(400, "An entry for this date does not exist");
       } else {
          const results = await JournalEntry.destroy({
             where: {
@@ -163,7 +163,6 @@ journalEntryRouter.delete('/:entry_date', async (req, res, next) => {
                user_id: req.user.id
             }
          });
-         console.log(results);
          res.status(200).send(`Deleted journal entry for user: ${req.user.username}, at date: ${entryDate}.`);
       }
    } catch(err){

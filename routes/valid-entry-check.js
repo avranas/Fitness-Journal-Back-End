@@ -1,6 +1,7 @@
 const express = require('express');
 const JournalEntry = require('../db/models/JournalEntries');
 const Profile = require('../db/models/Profiles');
+const createHttpError = require("http-errors");
 
 //YYYY-MM-DD format
 //Returns an false if the check fails. Returns true if it passes
@@ -9,11 +10,11 @@ const validDateCheck = (next, date) =>{
       const todaysDate = new Date();
       //Make sure the entered date is valid
       if(date == "Invalid Date"){
-         throw "The entered date is invalid";
+         throw createHttpError(400, "The entered date is invalid");
       }
       //If entered date is out of range (before start date, after current date) return an error
       if(date > todaysDate){
-         throw "The entered date is in the future";
+         throw createHttpError(400, "The entered date is in the future");
       }
       return true;
    }catch (err){
