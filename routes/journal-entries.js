@@ -92,6 +92,36 @@ journalEntryRouter.post('/:entry_date', async (req, res, next) => {
       if(await entryExists(req.user.id, entryDate)){
          throw createHttpError(400, "An entry for this date already exists");
       }
+      //Check to make sure there's data for every part of the journal entry
+      if(req.body.weight === undefined){
+         throw createHttpError(400, 'Put in a value for "weight"');
+      }
+      if(req.body.exercise_goal_met === undefined){
+         throw createHttpError(400, 'Put in a value for "exercise_goal_met"');
+      }
+      if(req.body.caloric_intake === undefined){
+         throw createHttpError(400, 'Put in a value for "caloric_intake"');
+      }
+      if(req.body.protein_intake === undefined){
+         throw createHttpError(400, 'Put in a value for "protein_intake"');
+      }
+
+      //Check to make sure they're all the correct type
+      console.log(typeof req.body.weight != Number)
+      console.log(typeof req.body.weight)
+      console.log(Number);
+      if(typeof req.body.weight != 'number'){
+         throw createHttpError(400, '"weight" must be a number');
+      }
+      if(typeof req.body.exercise_goal_met != 'boolean'){
+         throw createHttpError(400, '"exercise_goal_met" must be a boolean');
+      }
+      if(typeof req.body.caloric_intake != 'number'){
+         throw createHttpError(400, '"caloric_intake" must be a number');
+      }
+      if(typeof req.body.protein_intake != 'number'){
+         throw createHttpError(400, '"protein_intake" must be a number');
+      }
       await JournalEntry.create({
          entry_date: entryDate,
          weight: req.body.weight,

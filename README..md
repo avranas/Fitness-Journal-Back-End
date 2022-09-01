@@ -17,11 +17,15 @@ It allows users to keep track of their fitness goals using daily journal entries
 
 ## How to Use
 1. Create an account with a username, password, current weight, and target weight
-2. TBD once I finish the project!
+2. Enter new journal entries with POST /journal_entries/:entry_date
+3. Get previous journal entries with GET /journal_entries
+4. Get summaries of fitness data with GET /summary
 
 ## Technologies
 1. Node.js
 2. ExpressJS
 3. Postgres
-4. sequelize
-5. TBD once I finish the project!
+4. Sequelize
+5. Cors
+6. Passport + bcrypt
+7. Mocha/Chai/Supertest

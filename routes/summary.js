@@ -4,6 +4,7 @@ const Profile = require('../db/models/Profiles');
 const {checkAuthenticated} = require('./authentication-check');
 const {validDateCheck, userProfile} = require('./valid-entry-check');
 const { getJournalEntries, getAllJournalEntries } = require('./get-journal-entries');
+const createHttpError = require("http-errors");
 
 /*
 
@@ -148,6 +149,10 @@ const getWholeSummary = async (req, res, next, startDate, endDate) => {
       const journalResult = await getJournalEntries(req, res, next, startDate, endDate);
       if(!journalResult){
          throw "Failed to get journal entries";
+      }
+      //If no entries are found for the specified date range, a summary can not be created
+      if(!journalResult[0]){
+         throw createHttpError(400, "No entries found in the specified dates");
       }
       //Process data
       const { avgCaloricIntake, maxCaloricIntake, minCaloricIntake } = calorieSummary(journalResult);

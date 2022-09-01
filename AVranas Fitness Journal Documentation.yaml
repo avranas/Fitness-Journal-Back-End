@@ -1,0 +1,487 @@
+openapi: 3.0.3
+info:
+  title: AVranas Fitness Journal
+  version: 1.0.0
+  description: >-
+    avranas-daily-fitness-journal is a project being developed for the final
+    open-ended project in Codecademy's Back-End-Engineer path. It allows users
+    to keep track of their fitness goals using daily journal entries, which keep
+    track of their weight, caloric intake, protein intake, and any other notes
+    that the user would like to record.
+paths:
+  /login:
+    summary: Log in a user
+    description: This path is used to log in a user with their username and password
+    post:
+      summary: Log in a user
+      description: Attempts to log in a user with their username and password
+      operationId: login
+      responses:
+        '200':
+          content:
+            text/plain; charset=utf-8:
+              examples:
+                Success:
+                  value: 'Successfully logged in as: avranas42'
+          description: Success
+        '401':
+          content:
+            text/plain; charset=utf-8:
+              examples:
+                Invalid Credentials:
+                  value: Unauthorized
+          description: Invalid Credentials
+      tags:
+        - Login
+  /register:
+    summary: Register a new user
+    description: >-
+      This path is used to create a new user with their username, password,
+      starting weight, and goal weight
+    post:
+      summary: Register new user
+      description: Attempts to register a new user with the user's username and password
+      operationId: register
+      responses:
+        '200':
+          content:
+            text/plain; charset=utf-8:
+              examples:
+                Success:
+                  value: 'Created new user: avranas42'
+          description: Success
+        '400':
+          content:
+            text/plain; charset=utf-8:
+              examples:
+                User already exists:
+                  value: A user with that name already exists
+          description: User already exists
+      tags:
+        - Register
+  /logout:
+    summary: Log out a user
+    description: This path simply logs out a user
+    get:
+      summary: Log out a user
+      description: Simply logs out a user
+      operationId: logout
+      responses:
+        '200':
+          content:
+            text/plain; charset=utf-8:
+              examples:
+                Success:
+                  value: You have been logged out
+          description: Success
+      tags:
+        - Logout
+  /journal-entries:
+    summary: Gets all journal entries
+    description: This path is for retrieving all journal-entries from the logged in user
+    get:
+      summary: GET all journal entries
+      description: Retrieves all journal-entries from the logged in user
+      operationId: get_journal_entries
+      responses:
+        '200':
+          content:
+            application/json:
+              examples:
+                Success:
+                  value: |-
+                    [
+                        {
+                            "id": 39,
+                            "entry_date": "2022-08-24",
+                            "weight": 198.6,
+                            "exercise_goal_met": true,
+                            "caloric_intake": 2000,
+                            "protein_intake": 150,
+                            "notes": "Had Chipotle 2x chicken + guac and a protein shake.",
+                            "user_id": 22,
+                            "createdAt": "2022-08-31",
+                            "updatedAt": "2022-08-31",
+                            "userId": 22
+                        },
+                        {
+                            "id": 24,
+                            "entry_date": "2022-06-01",
+                            "weight": 198.6,
+                            "exercise_goal_met": true,
+                            "caloric_intake": 2000,
+                            "protein_intake": 150,
+                            "notes": "Had Chipotle 2x chicken + guac and a protein shake. Felt a little hungry at the end of the day",
+                            "user_id": 22,
+                            "createdAt": "2022-08-08",
+                            "updatedAt": "2022-08-08",
+                            "userId": 22
+                        },
+                        {
+                            "id": 25,
+                            "entry_date": "2022-06-02",
+                            "weight": 197.6,
+                            "exercise_goal_met": true,
+                            "caloric_intake": 1900,
+                            "protein_intake": 160,
+                            "notes": "More chipotle",
+                            "user_id": 22,
+                            "createdAt": "2022-08-08",
+                            "updatedAt": "2022-08-08",
+                            "userId": 22
+                        }
+                    ]
+          description: Success
+      tags:
+        - Journal Entries
+  /journal-entries/:entry_date:
+    summary: Work on one journal entry on a specific date
+    description: >-
+      This path is used for retrieving, creating, modifying, or deleting the
+      journal entry on a specific date
+    get:
+      summary: Get journal entry from entered date
+      description: >-
+        Retrieves the journal entries for the logged in user with a specified
+        date
+      operationId: get_journal_entry
+      responses:
+        '200':
+          content:
+            application/json:
+              examples:
+                Success:
+                  value: |-
+                    [
+                        {
+                            "id": 39,
+                            "entry_date": "2022-08-24",
+                            "weight": 198.6,
+                            "exercise_goal_met": true,
+                            "caloric_intake": 2000,
+                            "protein_intake": 150,
+                            "notes": "Had Chipotle 2x chicken + guac and a protein shake.",
+                            "user_id": 22,
+                            "createdAt": "2022-08-31",
+                            "updatedAt": "2022-08-31",
+                            "userId": 22
+                        }
+                    ]
+          description: Success
+        '400':
+          content:
+            text/plain; charset=utf-8:
+              examples:
+                Invalid date:
+                  value: The entered date is invalid
+                Future date:
+                  value: The entered date is in the future
+          description: Failure
+        '404':
+          content:
+            text/plain; charset=utf-8:
+              examples:
+                No entry found:
+                  value: No entry for this date was found
+          description: Failure
+        default:
+          description: Default error sample response
+      tags:
+        - Journal Entries
+    post:
+      summary: Create new journal entry
+      description: Creates a new journal entry on a specified date
+      operationId: post_journal_entry
+      responses:
+        '201':
+          content:
+            text/plain; charset=utf-8:
+              examples:
+                Success:
+                  value: New entry accepted
+          description: Success
+        '400':
+          content:
+            application/json:
+              examples:
+                Future date:
+                  value: The entered date is in the future.
+            text/plain; charset=utf-8:
+              examples:
+                Invalid date:
+                  value: The entered date is invalid
+                Entry already exists for this date:
+                  value: An entry for this date already exists
+                No weight data:
+                  value: Put in a value for "weight"
+                No exercise_goal_met data:
+                  value: Put in a value for "exercise_goal_met"
+                No caloric_intake data:
+                  value: Put in a value for "caloric_intake"
+                No protein_intake data:
+                  value: Put in a value for "protein_intake"
+                Invalid type for weight:
+                  value: '"weight" must be a number'
+                Invalid type for exercise_goal_met:
+                  value: '"exercise_goal_met" must be a boolean'
+                Invalid type for caloric_intake:
+                  value: '"caloric_intake" must be a number'
+                Invalid type for protein_intake:
+                  value: '"protein_intake" must be a number'
+          description: Failure
+      tags:
+        - Journal Entries
+    put:
+      summary: Modify journal entry
+      description: Modifies an existing journal entry
+      operationId: put_journal_entry
+      responses:
+        '200':
+          content:
+            text/plain; charset=utf-8:
+              examples:
+                Success:
+                  value: >-
+                    Updated journal entry for user: avranas42, at date: Wed Aug
+                    24 2022 00:00:00 GMT-0700 (Pacific Daylight Time).
+          description: Success
+        '400':
+          content:
+            text/plain; charset=utf-8:
+              examples:
+                Invalid date:
+                  value: The entered date is invalid
+                Future date:
+                  value: The entered date is in the future
+          description: Failure
+      tags:
+        - Journal Entries
+    delete:
+      summary: Delete journal entry
+      description: Deletes a journal entry from the logged in user on a specified date
+      operationId: delete_journal_entry
+      responses:
+        '200':
+          content:
+            text/plain; charset=utf-8:
+              examples:
+                Success:
+                  value: >-
+                    Deleted journal entry for user: avranas69, at date: Wed Aug
+                    24 2022 00:00:00 GMT-0700 (Pacific Daylight Time).
+          description: Success
+        '400':
+          content:
+            text/plain; charset=utf-8:
+              examples:
+                Invalid date:
+                  value: The entered date is invalid
+                Date does not exist:
+                  value: An entry for this date does not exist
+          description: Failure
+      tags:
+        - Journal Entries
+  /journal-entries/:start_date/:end_date:
+    summary: Gets all journal entries for a user in a range of two dates
+    description: >-
+      This path is for retrieving all journal entries for the logged in user in
+      a range of two dates
+    get:
+      summary: Get journal entries in range of two dates
+      description: >-
+        Retrieves all journal entries for the logged in user in a range of two
+        specified dates
+      operationId: get_journal_entries_in_range
+      responses:
+        '200':
+          content:
+            application/json:
+              examples:
+                Success:
+                  value: |-
+                    [
+                        {
+                            "id": 25,
+                            "entry_date": "2022-06-02",
+                            "weight": 197.6,
+                            "exercise_goal_met": true,
+                            "caloric_intake": 1900,
+                            "protein_intake": 160,
+                            "notes": "More chipotle",
+                            "user_id": 22,
+                            "createdAt": "2022-08-08",
+                            "updatedAt": "2022-08-08",
+                            "userId": 22
+                        },
+                        {
+                            "id": 26,
+                            "entry_date": "2022-06-03",
+                            "weight": 196.2,
+                            "exercise_goal_met": true,
+                            "caloric_intake": 1800,
+                            "protein_intake": 170,
+                            "notes": "chipotle",
+                            "user_id": 22,
+                            "createdAt": "2022-08-08",
+                            "updatedAt": "2022-08-08",
+                            "userId": 22
+                        },
+                        {
+                            "id": 27,
+                            "entry_date": "2022-06-04",
+                            "weight": 192,
+                            "exercise_goal_met": true,
+                            "caloric_intake": 1250,
+                            "protein_intake": 220,
+                            "notes": "Wow I'm doing okay!",
+                            "user_id": 22,
+                            "createdAt": "2022-08-08",
+                            "updatedAt": "2022-08-10",
+                            "userId": 22
+                        }
+                    ]
+          description: Success
+        '400':
+          content:
+            text/plain; charset=utf-8:
+              examples:
+                Invalid date:
+                  value: The entered date is invalid
+          description: Failure
+      tags:
+        - Journal Entries
+  /summary:
+    summary: Get a summary of the logged in user
+    description: Retrieves a summary of the logged in user's all time progress
+    get:
+      summary: Get all time summary
+      description: Gets an all time summary of fitness progress from the logged in user
+      operationId: get_all_time_summary
+      responses:
+        '200':
+          content:
+            text/plain; charset=utf-8:
+              examples:
+                Success:
+                  value: |-
+                    {
+                        "start_date": "2022-06-01",
+                        "end_date": "2022-07-01",
+                        "average_caloric_intake": 1675,
+                        "max_caloric_intake": 2150,
+                        "min_caloric_intake": 1250,
+                        "average_protein_intake": 187,
+                        "max_protein_intake": 220,
+                        "min_protein_intake": 150,
+                        "average_daily_weight_change": 0.21290322580645143,
+                        "biggest_gain": 3.5,
+                        "biggest_loss": 4.199999999999989,
+                        "goal_achieved_percentage": "90%",
+                        "max_chain": 8
+                    }
+          description: Success
+        '400':
+          content:
+            text/plain; charset=utf-8:
+              examples:
+                User has made no journal entries:
+                  value: No entries found in the specified dates
+          description: Failure
+      tags:
+        - Summary
+  /summary/:start_date:
+    summary: Gets a summary of progress from the specified date to the present
+    description: >-
+      Retrieves a summary of the logged in user's progress in a range from the
+      specified date until the present
+    get:
+      summary: Get summary since specified date
+      description: >-
+        Gets a summary of the logged in user's fitness progress from a specified
+        date until the present
+      operationId: get_summary_since_date
+      responses:
+        '200':
+          content:
+            application/json:
+              examples:
+                Success:
+                  value: |-
+                    {
+                        "start_date": "2022-06-02",
+                        "end_date": "2022-07-01",
+                        "average_caloric_intake": 1638.888888888889,
+                        "max_caloric_intake": 2150,
+                        "min_caloric_intake": 1250,
+                        "average_protein_intake": 191.11111111111111,
+                        "max_protein_intake": 220,
+                        "min_protein_intake": 160,
+                        "average_daily_weight_change": 0.18666666666666648,
+                        "biggest_gain": 3.5,
+                        "biggest_loss": 4.199999999999989,
+                        "goal_achieved_percentage": "88.88888888888889%",
+                        "max_chain": 7
+                    }
+          description: Default error sample response
+        '400':
+          content:
+            text/plain; charset=utf-8:
+              examples:
+                Invalid date:
+                  value: The entered date is invalid
+                Future date:
+                  value: The entered date is in the future
+                No entries found:
+                  value: No entries found in the specified dates
+          description: Default error sample response
+        default:
+          description: Default error sample response
+      tags:
+        - Summary
+  /summary/:start_date/:end_date:
+    summary: Gets a summary of progress for a user in a range of two dates
+    description: >-
+      Retrieves a summary of the logged in user's progress in a range from two
+      specified dates
+    get:
+      summary: Gets a summary for a range of two dates
+      description: >-
+        Gets a summary of the logged in user's fitness progress for a range of
+        two specified dates
+      operationId: get_summary_in_range
+      responses:
+        '200':
+          content:
+            application/json:
+              examples:
+                Success:
+                  value: |-
+                    {
+                        "start_date": "2022-06-02",
+                        "end_date": "2022-06-06",
+                        "average_caloric_intake": 1770,
+                        "max_caloric_intake": 2150,
+                        "min_caloric_intake": 1250,
+                        "average_protein_intake": 178,
+                        "max_protein_intake": 220,
+                        "min_protein_intake": 160,
+                        "average_daily_weight_change": 0.5199999999999989,
+                        "biggest_gain": 3.5,
+                        "biggest_loss": 4.199999999999989,
+                        "goal_achieved_percentage": "100%",
+                        "max_chain": 5
+                    }
+          description: Success
+        '400':
+          content:
+            text/plain; charset=utf-8:
+              examples:
+                Invalid date:
+                  value: The entered date is invalid
+                Future date:
+                  value: The entered date is in the future
+                No entries found:
+                  value: No entries found in the specified dates
+          description: Failure
+      tags:
+        - Summary

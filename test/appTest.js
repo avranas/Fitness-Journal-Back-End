@@ -1,15 +1,12 @@
-//Hi, this is Alex, the programmer. This was my first time writing a suite of tests,
-//so things might be a little messy. Please be patient and I would love
-//constructive criticism :)
-
+/*
+   Hi, this is Alex, the programmer. This was my first time writing a suite of tests,
+   so things might be a little messy. Please be patient and I would love
+   constructive criticism :)
+*/
 const expect = require('chai').expect;
-//const request = require('supertest');
 const { res } = require('../server');
-//const app = require('../server');
-
 const request = require('supertest');
 const app = request.agent('http://localhost:3000');
-
 
 //This user already exists. Don't change this
 const testUsername = "avranas69";
@@ -20,10 +17,10 @@ const testUserData = {
    password: testPassword
 }
 
-function loginUser() {
+function loginUser(userData) {
    return done => {
        app.post('/login')
-          .send(testUserData)
+          .send(userData)
          .end( err => {
             if (err) return done(err);
             return done();
@@ -133,7 +130,7 @@ describe('/login', () => {
       });
    });
    describe('POST / with user logged in', () => {     
-      before('loggingIn', loginUser());
+      before('loggingIn', loginUser(testUserData));
       it(`Should respond with 401 and 'You need to be logged out to do that' if a user is already logged in`, done => {
       app.post('/login').send(testUserData)
          .end((err, res) => {
@@ -148,7 +145,7 @@ describe('/login', () => {
 });
 
 describe('GET /logout', function(){
-   before('loggingIn', loginUser());
+   before('loggingIn', loginUser(testUserData));
    it('Logs out user, returns 200 + "You have been logged out"', done => {
       app
        .get('/logout')
@@ -192,7 +189,7 @@ const fullSummaryObjectTest = (res) => {
 
 describe('GET /summary', function(){
    //log into testUsername's profile and get a summary of all journal entries
-   before('loggingIn', loginUser());
+   before('loggingIn', loginUser(testUserData));
 
    //Happy paths
    it('returns 200 + a full summary object for each entry', done => {
@@ -241,7 +238,29 @@ describe('GET /summary', function(){
    });
 
    //Sad paths
-   it('Returns "The entered date is invalid" when an invalid date is entered', done => {
+   it('Returns 400 + "No entries found in the specified dates', done => {
+      app.
+      get('/summary/08-25-2022') //This user should not have any journal entries from this date to the present
+      .end((err, res) => {
+         console.log(`res code: ${res.statusCode} text: ${res.text}`);
+        expect(res.statusCode).to.equal(400);
+        expect(res.text).to.equal("No entries found in the specified dates");
+          if (err) return done(err);
+          done();
+      });
+   });
+   it('Returns 400 + "No entries found in the specified dates', done => {
+      app.
+      get('/summary/08-26-2022/08-28-2022') //This user should not have any journal entries for this date range
+      .end((err, res) => {
+         console.log(`res code: ${res.statusCode} text: ${res.text}`);
+        expect(res.statusCode).to.equal(400);
+        expect(res.text).to.equal("No entries found in the specified dates");
+          if (err) return done(err);
+          done();
+      });
+   });
+   it('Returns 400 + "The entered date is invalid" when an invalid date is entered', done => {
       app.
       get('/summary/06-0d-2022')
       .end((err, res) => {
@@ -252,7 +271,7 @@ describe('GET /summary', function(){
           done();
       });
    });
-   it('Returns "The entered date is in the future" when an entered date is in the future', done => {
+   it('Returns 400 + "The entered date is in the future" when an entered date is in the future', done => {
       app.
       get('/summary/12-31-9999')
       .end((err, res) => {
@@ -263,24 +282,13 @@ describe('GET /summary', function(){
           done();
       });
    });
-   it('Returns "The entered date is invalid" when an invalid date is entered', done => {
+   it('Returns 400 + "The entered date is invalid" when an invalid date is entered', done => {
       app.
       get('/summary/06-02-2022/06-0d-2022')
       .end((err, res) => {
          console.log(`res code: ${res.statusCode} text: ${res.text}`);
         expect(res.statusCode).to.equal(400);
         expect(res.text).to.equal("The entered date is invalid");
-          if (err) return done(err);
-          done();
-      });
-   });
-   it('Returns "The entered date is in the future" when an entered date is in the future', done => {
-      app.
-      get('/summary/12-31-2021/12-31-9999')
-      .end((err, res) => {
-         console.log(`res code: ${res.statusCode} text: ${res.text}`);
-        expect(res.statusCode).to.equal(400);
-        expect(res.text).to.equal("The entered date is in the future");
           if (err) return done(err);
           done();
       });
@@ -305,7 +313,7 @@ const fullJournalEntriesTest = (res) => {
 
 describe('GET /journal-entries', function(){
    //log into testUsername's profile and the user's journal entries
-   before('loggingIn', loginUser());
+   before('loggingIn', loginUser(testUserData));
 
    //Happy paths
    it('returns 200 + a full journal-entries array', done => {
@@ -387,17 +395,6 @@ describe('GET /journal-entries', function(){
           done();
       });
    });
-   it('Returns "The entered date is in the future" when an entered date is in the future', done => {
-      app.
-      get('/journal-entries/12-31-2021/12-31-9999')
-      .end((err, res) => {
-         console.log(`res code: ${res.statusCode} text: ${res.text}`);
-        expect(res.statusCode).to.equal(400);
-        expect(res.text).to.equal("The entered date is in the future");
-          if (err) return done(err);
-          done();
-      });
-   });
 });
 
 const newEntryData = {
@@ -407,6 +404,7 @@ const newEntryData = {
    protein_intake: 150,
    notes: "Had Chipotle 2x chicken + guac and a protein shake."
 }
+
 const modifiedEntryData = {
    weight: 198.6,
    exercise_goal_met: true,
@@ -418,7 +416,7 @@ describe('POST new entry, PUT (modify) it, then DELETE it', function(){
    const testDate = '2022-08-27';
    describe('POST /journal-entries', function(){
       //log into testUsername's profile and the user's journal entries
-      before('loggingIn', loginUser());
+      before('loggingIn', loginUser(testUserData));
  
       //Happy paths
       it('returns 201 + returns "New entry accepted"', done => {
@@ -477,7 +475,123 @@ describe('POST new entry, PUT (modify) it, then DELETE it', function(){
    });
 });
 
+//This date has no entry in it. If tests are failing because it does, change this
+const emptyDate = '08-15-2022'
+
 describe('POST /journal-entries sad paths', function(){
+   it(`Returns 400 and "Put in a value for "weight"`, done => {
+      let newEntryDataCopy = Object.assign({}, newEntryData);
+      newEntryDataCopy.weight = undefined;
+      app
+      .post(`/journal-entries/${emptyDate}`)
+      .send(newEntryDataCopy)
+      .end((err, res) => {
+         console.log(`res code: ${res.statusCode} text: ${res.text}`);
+         expect(res.statusCode).to.equal(400);
+         expect(res.text).to.equal(`Put in a value for "weight"`);
+         if (err) return done(err);
+         done();
+      });
+   });
+   it(`Returns 400 and "Put in a value for "exercise_goal_met"`, done => {
+      let newEntryDataCopy = Object.assign({}, newEntryData);
+      newEntryDataCopy.exercise_goal_met = undefined;
+      app
+      .post(`/journal-entries/${emptyDate}`)
+      .send(newEntryDataCopy)
+      .end((err, res) => {
+         console.log(`res code: ${res.statusCode} text: ${res.text}`);
+         expect(res.statusCode).to.equal(400);
+         expect(res.text).to.equal(`Put in a value for "exercise_goal_met"`);
+         if (err) return done(err);
+         done();
+      });
+   });
+   it(`Returns 400 and "Put in a value for "caloric_intake"`, done => {
+      let newEntryDataCopy = Object.assign({}, newEntryData);
+      newEntryDataCopy.caloric_intake = undefined;
+      app
+      .post(`/journal-entries/${emptyDate}`)
+      .send(newEntryDataCopy)
+      .end((err, res) => {
+         console.log(`res code: ${res.statusCode} text: ${res.text}`);
+         expect(res.statusCode).to.equal(400);
+         expect(res.text).to.equal(`Put in a value for "caloric_intake"`);
+         if (err) return done(err);
+         done();
+      });
+   });
+   it(`Returns 400 and "Put in a value for "protein_intake"`, done => {
+      let newEntryDataCopy = Object.assign({}, newEntryData);
+      newEntryDataCopy.protein_intake = undefined;
+      app
+      .post(`/journal-entries/${emptyDate}`)
+      .send(newEntryDataCopy)
+      .end((err, res) => {
+         console.log(`res code: ${res.statusCode} text: ${res.text}`);
+         expect(res.statusCode).to.equal(400);
+         expect(res.text).to.equal(`Put in a value for "protein_intake"`);
+         if (err) return done(err);
+         done();
+      });
+   });
+   it(`Returns 400 and "weight" must be a number`, done => {
+      let newEntryDataCopy = Object.assign({}, newEntryData);
+      newEntryDataCopy.weight = true;
+      app
+      .post(`/journal-entries/${emptyDate}`)
+      .send(newEntryDataCopy)
+      .end((err, res) => {
+         console.log(`res code: ${res.statusCode} text: ${res.text}`);
+         expect(res.statusCode).to.equal(400);
+         expect(res.text).to.equal(`"weight" must be a number`);
+         if (err) return done(err);
+         done();
+      });
+   });
+   it(`Returns 400 and "exercise_goal_met" must be a boolean`, done => {
+      let newEntryDataCopy = Object.assign({}, newEntryData);
+      newEntryDataCopy.exercise_goal_met = 12;
+      app
+      .post(`/journal-entries/${emptyDate}`)
+      .send(newEntryDataCopy)
+      .end((err, res) => {
+         console.log(`res code: ${res.statusCode} text: ${res.text}`);
+         expect(res.statusCode).to.equal(400);
+         expect(res.text).to.equal(`"exercise_goal_met" must be a boolean`);
+         if (err) return done(err);
+         done();
+      });
+   });
+   it(`Returns 400 and "caloric_intake" must be a number`, done => {
+      let newEntryDataCopy = Object.assign({}, newEntryData);
+      newEntryDataCopy.caloric_intake = true;
+      app
+      .post(`/journal-entries/${emptyDate}`)
+      .send(newEntryDataCopy)
+      .end((err, res) => {
+         console.log(`res code: ${res.statusCode} text: ${res.text}`);
+         expect(res.statusCode).to.equal(400);
+         expect(res.text).to.equal(`"caloric_intake" must be a number`);
+         if (err) return done(err);
+         done();
+      });
+   });
+   it(`Returns 400 and "protein_intake" must be a number`, done => {
+      let newEntryDataCopy = Object.assign({}, newEntryData);
+      newEntryDataCopy.protein_intake = true;
+      app
+      .post(`/journal-entries/${emptyDate}`)
+      .send(newEntryDataCopy)
+      .end((err, res) => {
+         console.log(`res code: ${res.statusCode} text: ${res.text}`);
+         expect(res.statusCode).to.equal(400);
+         expect(res.text).to.equal(`"protein_intake" must be a number`);
+         if (err) return done(err);
+         done();
+      });
+   });
+
    it(`Returns 400 and "The entered date is invalid"`, done => {
       app
       .post(`/journal-entries/08-2d-2022`)
@@ -488,6 +602,17 @@ describe('POST /journal-entries sad paths', function(){
          expect(res.text).to.equal(`The entered date is invalid`);
          if (err) return done(err);
          done();
+      });
+   });
+   it('Returns "The entered date is in the future" when an entered date is in the future', done => {
+      app.
+      post('/journal-entries/12-31-9999')
+      .end((err, res) => {
+         console.log(`res code: ${res.statusCode} text: ${res.text}`);
+        expect(res.statusCode).to.equal(400);
+        expect(res.text).to.equal("The entered date is in the future");
+          if (err) return done(err);
+          done();
       });
    });
    it(`Returns 400 and "An entry for this date already exists"`, done => {
@@ -515,6 +640,17 @@ describe('PUT /journal-entries sad paths', function(){
          expect(res.text).to.equal(`The entered date is invalid`);
          if (err) return done(err);
          done();
+      });
+   });
+   it('Returns "The entered date is in the future" when an entered date is in the future', done => {
+      app.
+      put('/journal-entries/12-31-9999')
+      .end((err, res) => {
+         console.log(`res code: ${res.statusCode} text: ${res.text}`);
+        expect(res.statusCode).to.equal(400);
+        expect(res.text).to.equal("The entered date is in the future");
+          if (err) return done(err);
+          done();
       });
    });
    it(`Returns 400 and "An entry for this date does not exist"`, done => {
@@ -555,5 +691,29 @@ describe('DELETE /journal-entries sad paths', function(){
          done();
       });
    });
+});
+//One last test I didn't realize I needed until the last minute
 
+//This user has no journal entries
+const emptyUserData = {
+   username: "testuser10",
+   password: "p@ssw0rd"
+}
+
+describe('GET /summary from a user with no journal entries', function(){
+   describe('GET /summary', function(){
+      before('log out', logoutUser());
+      before('log in', loginUser(emptyUserData));
+      it(`Returns 400 and "No entries found in the specified dates" for a user with no journal entries`, done => {
+         app
+         .get(`/summary`) //This date should NOT have an entry.
+         .end((err, res) => {
+            console.log(`res code: ${res.statusCode} text: ${res.text}`);
+            expect(res.statusCode).to.equal(400);
+            expect(res.text).to.equal(`No entries found in the specified dates`);
+            if (err) return done(err);
+            done();
+         });
+      });
+   });
 });
