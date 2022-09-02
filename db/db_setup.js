@@ -15,15 +15,15 @@ const db = new Sequelize(process.env.DB_NAME, process.env.DB_USER, process.env.D
    port: process.env.DB_PORT,
    timestamps: false,
    freezeTableName: true,
-   /*
-   Uncomment when you deploy - This will not work in development, but is required for testing. Don't ask me why
+   
+   //Comment dialectOptions out for local testing
    dialectOptions: {
       ssl: {
         require: true,
         rejectUnauthorized: false
       }
    }
-   */
+   
 });
 
 //Test database connection
