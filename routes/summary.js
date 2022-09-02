@@ -96,7 +96,7 @@ const weightChangeSummary = (journal) => {
       const newDate = loopDate.setDate(loopDate.getDate() + 1);
       loop = new Date(newDate);
    }
-   const avgDailyWeightChange = (startWeight - prevWeight) / totalDayCounter;
+   const avgDailyWeightChange = (startWeight - prevWeight) / (totalDayCounter - 1);
    return {
       avgDailyWeightChange,
       biggestGain,
